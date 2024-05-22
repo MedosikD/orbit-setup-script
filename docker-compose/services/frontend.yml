@@ -2,10 +2,18 @@ version: '3.9'
 
 services:
   frontend:
-    image: ghcr.io/blockscout/frontend:${FRONTEND_DOCKER_TAG:-v1.21.2}
+    #    image: ghcr.io/blockscout/frontend:${FRONTEND_DOCKER_TAG:-v1.21.2}
+    image: ivanyakhvak/blockscout:test
     pull_policy: always
     platform: linux/amd64
     restart: always
     container_name: 'frontend'
     env_file:
       -  ../envs/common-frontend.env
+    environment:
+      VIRTUAL_HOST: sepolia.explorer.treydongroup.com
+      VIRTUAL_PORT: 3000
+      VIRTUAL_PATH: /
+      LETSENCRYPT_HOST: sepolia.explorer.treydongroup.com
+      LETSENCRYPT_EMAIL: ivanyahvak123@gmail.com
+      BACKEND_HOST: backend

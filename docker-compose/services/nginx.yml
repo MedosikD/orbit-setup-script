@@ -1,20 +1,42 @@
 version: '3.9'
-
 services:
   proxy:
-    image: nginx
+    image: nginxproxy/nginx-proxy:1.5
     container_name: proxy
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
     volumes:
-      - "../proxy:/etc/nginx/templates"
-    environment:
+        # DO NOT FORGET TO CHANGE PATH TO ../VOLUMES !!!!!!!!!!!!
+      - '../volumes/nginx/conf.d:/etc/nginx/conf.d'
+      - '../volumes/nginx/vhost.d:/etc/nginx/vhost.d'
+      - '../volumes/nginx/certs:/etc/nginx/certs:ro'
+      - '../volumes/nginx/dhparam:/etc/nginx/dhparam'
+      - '../volumes/nginx/html:/usr/share/nginx/html'
+      - '/var/run/docker.sock:/tmp/docker.sock:ro'
+    encironment:
       BACK_PROXY_PASS: ${BACK_PROXY_PASS:-http://backend:4000}
-      FRONT_PROXY_PASS: ${FRONT_PROXY_PASS:-http://frontend:3000}
+      FRONT_PROXY_PASS: ${FRONT_PROXY_PASS:-http://frontend:3000}  
     ports:
-      - target: 80
-        published: 80
-      - target: 8080
-        published: 8080
-      - target: 8081
-        published: 8081
+      - "80:80"
+      - "443:443"   
+      - "8080:8080"
+      - "8081:8081"
+    restart: always
+    
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: proxy-ssl-helper
+    volumes_from:
+      - proxy
+    environment:
+      - DOCKER_HOST_ROOTLESS_PATH=/run/user/1000/docker.sock  
+      
+    volumes:
+    # DO NOT FORGET TO CHANGE PATH TO ../VOLUMES !!!!!!!!!!!!
+      - '../volumes/nginx/conf.d:/etc/nginx/conf.d'
+      - '../volumes/nginx/dhparam:/etc/nginx/dhparam'
+      - '../volumes/nginx/vhost.d:/etc/nginx/vhost.d'
+      - '../volumes/nginx/html:/usr/share/nginx/html'
+      - '../volumes/nginx/certs:/etc/nginx/certs'
+      - '../volumes/nginx/acme:/etc/acme.sh'
+      - '${DOCKER_HOST_ROOTLESS_PATH:-/var/run/docker.sock}:/var/run/docker.sock:ro'
+    restart: always
+

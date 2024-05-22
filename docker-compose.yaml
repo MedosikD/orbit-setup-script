@@ -76,22 +76,18 @@ services:
       file: ./docker-compose/services/stats.yml
       service: stats
 
-  proxy:
-    depends_on:
-      - backend
-      - frontend
-      - stats
-    extends:
-      file: ./docker-compose/services/nginx.yml
-      service: proxy
-
+  
   nitro:
     image: offchainlabs/nitro-node:v2.3.3-6a1c1a7
-    ports:
-      - "127.0.0.1:8449:8449"
+
     volumes:
       - "./config:/home/user/.arbitrum"
     command: --conf.file /home/user/.arbitrum/nodeConfig.json
+    environment:
+      - VIRTUAL_HOST=sepolia.rpc.treydongroup.com
+      - VIRTUAL_PORT=8449
+      - LETSENCRYPT_HOST=sepolia.rpc.treydongroup.com
+      - LETSENCRYPT_EMAIL=ivanyahvak123@gmail.com
 
   das-server:
     image: offchainlabs/nitro-node:v2.3.3-6a1c1a7
@@ -103,3 +99,20 @@ services:
     ports:
       - "9876:9876"
       - "9877:9877"
+  
+  proxy:
+    depends_on:
+      - backend
+      - frontend
+      - stats
+      - nitro
+    extends:
+      file: ./docker-compose/services/nginx.yml
+      service: proxy
+      
+  letsencrypt:
+    depends_on:
+      - proxy
+    extends:
+      file: ./docker-compose/services/nginx.yml
+      service: letsencrypt 

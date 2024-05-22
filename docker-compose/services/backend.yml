@@ -14,3 +14,7 @@ services:
       -  ../envs/common-blockscout.env
     volumes:
       - ./logs/:/app/logs/
+    environment:
+      VIRTUAL_HOST: sepolia.explorer.treydongroup.com
+      VIRTUAL_PORT: 4000
+      VIRTUAL_PATH: ~^/(api|socket|sitemap.xml|auth/auth0|auth/auth0/callback|auth/logout)
